@@ -1,15 +1,9 @@
 <html>
   <head>
-    <title>kakakikikeke's Random Podcast</title>
+    <title>kakakikikeke's Podcast Random Player</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css">
   </head>
   <body>
-    <div id="bg_color"></div>
-    <div id="bg_img"></div>
-    <div id="reload">
-      <div class="right_side"><a href="/" class="btn">ランダムに他のエピソードを聴く</a></div>
-      <div class="right_side"><a href="https://kakakikikeke.com/podcast">エピソード一覧</a></div>
-    </div>
     <div id="show_note">
       <nav role="navigation">
 	<div id="menu_toggle">
@@ -20,6 +14,12 @@
           {{ .ShowNote }}
 	</div>
       </nav>
+    </div>
+    <div id="bg_color"></div>
+    <div id="bg_img"></div>
+    <div id="reload">
+      <div class="right_side"><a href="/" class="btn">ランダムに他のエピソードを聴く</a></div>
+      <div class="right_side"><a href="https://kakakikikeke.com/podcast">エピソード一覧</a></div>
     </div>
     <div id="player">
       <div id="ep_title" class="_base_font">{{ .Title }}</div>

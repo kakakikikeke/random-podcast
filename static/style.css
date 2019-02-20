@@ -1,3 +1,105 @@
+body {
+    animation: fadeIn 3s ease 0s 1 normal;
+    -webkit-animation: fadeIn 3s ease 0s 1 normal;
+}
+
+@keyframes fadeIn {
+    0% {opacity: 0}
+    100% {opacity: 1}
+}
+
+@-webkit-keyframes fadeIn {
+    0% {opacity: 0}
+    100% {opacity: 1}
+}
+
+#show_note {
+    width: 30%;
+}
+
+#menu_toggle {
+    display: block;
+    position: relative;
+    top: 20px;
+    padding-left: 20px;
+    z-index: 1;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#menu_toggle input {
+    display: block;
+    width: 32px;
+    height: 32px;
+    position: absolute;
+    top: -7px;
+    cursor: pointer;
+    opacity: 0;
+    z-index: 2;
+    -webkit-touch-callout: none;
+}
+
+#menu_toggle span {
+    display: block;
+    width: 33px;
+    height: 4px;
+    margin-bottom: 5px;
+    position: relative;
+    background: #cdcdcd;
+    border-radius: 3px;
+    z-index: 1;
+    transform-origin: 4px 0px;
+    transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+    background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+    opacity 0.55s ease;
+}
+
+#menu_toggle span:first-child {
+    transform-origin: 0% 0%;
+}
+
+#menu_toggle span:nth-last-child(2) {
+    transform-origin: 0% 100%;
+}
+
+#menu_toggle input:checked ~ span {
+    opacity: 1;
+    transform: rotate(45deg) translate(-2px, -1px);
+    background: #232323;
+}
+
+#menu_toggle input:checked ~ span:nth-last-child(3) {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.2, 0.2);
+}
+
+#menu_toggle input:checked ~ span:nth-last-child(2) {
+    transform: rotate(-45deg) translate(0, -1px);
+}
+
+#menu {
+    position: absolute;
+    width: 100%;
+    margin: -100px 0 0 -50px;
+    padding-top: 125px;
+    padding-left: 80px;
+    padding-right: 80px;
+    padding-bottom: 50px;
+    background: #F2F2F2;
+    -webkit-font-smoothing: antialiased;
+    transform-origin: 0% 0%;
+    transform: translate(-100%, 0);
+    transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+}
+
+#menu li {
+    font-size: 18px;
+}
+
+#menu_toggle input:checked ~ ul {
+    transform: none;
+}
+
 #bg_color {
     position: fixed;
     top: 0;
@@ -89,88 +191,4 @@ a:not(.btn) {
 
 a:hover:not(.btn) {
     color: tomato;
-}
-
-#menu_toggle {
-    display: block;
-    position: relative;
-    top: 20px;
-    left: 20px;
-    z-index: 1;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-#menu_toggle input {
-    display: block;
-    width: 40px;
-    height: 32px;
-    position: absolute;
-    top: -7px;
-    left: -5px;
-    cursor: pointer;
-    opacity: 0;
-    z-index: 2;
-    -webkit-touch-callout: none;
-}
-
-#menu_toggle span {
-    display: block;
-    width: 33px;
-    height: 4px;
-    margin-bottom: 5px;
-    position: relative;
-    background: #cdcdcd;
-    border-radius: 3px;
-    z-index: 1;
-    transform-origin: 4px 0px;
-    transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
-    background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
-    opacity 0.55s ease;
-}
-
-#menu_toggle span:first-child {
-    transform-origin: 0% 0%;
-}
-
-#menu_toggle span:nth-last-child(2) {
-    transform-origin: 0% 100%;
-}
-
-#menu_toggle input:checked ~ span {
-    opacity: 1;
-    transform: rotate(45deg) translate(-2px, -1px);
-    background: #232323;
-}
-
-#menu_toggle input:checked ~ span:nth-last-child(3) {
-    opacity: 0;
-    transform: rotate(0deg) scale(0.2, 0.2);
-}
-
-#menu_toggle input:checked ~ span:nth-last-child(2) {
-    transform: rotate(-45deg) translate(0, -1px);
-}
-
-h3, p, #menu {
-    position: absolute;
-    width: 30%;
-    margin: -100px 0 0 -50px;
-    padding-top: 125px;
-    padding-left: 80px;
-    padding-right: 80px;
-    padding-bottom: 50px;
-    background: #F2F2F2;
-    -webkit-font-smoothing: antialiased;
-    transform-origin: 0% 0%;
-    transform: translate(-100%, 0);
-    transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
-}
-
-#menu li {
-    font-size: 18px;
-}
-
-#menu_toggle input:checked ~ ul {
-    transform: none;
 }
