@@ -10,3 +10,4 @@ google-cloud-sdk を homebrew でインストールしてあること
 # deploy
 * gcloud config configurations activate default
 * gcloud app deploy
+* gcloud app logs tail -s default

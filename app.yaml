@@ -14,6 +14,8 @@
 
 runtime: go122
 
+app_engine_apis: true
+
 handlers:
 - url: /favicon\.ico
   static_files: static/favicon.ico
