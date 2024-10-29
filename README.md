@@ -8,4 +8,5 @@ google-cloud-sdk を homebrew でインストールしてあること
 * python /opt/homebrew/share/google-cloud-sdk/bin/dev_appserver.py .
 
 # deploy
+* gcloud config configurations activate default
 * gcloud app deploy
