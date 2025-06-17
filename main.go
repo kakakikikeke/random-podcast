@@ -2,19 +2,19 @@ package main
 
 import (
 	"html/template"
-	"io/ioutil"
+	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/mmcdole/gofeed"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 var (
-	index = template.Must(template.ParseFiles("index.html"))
+	index   = template.Must(template.ParseFiles("index.html"))
+	feedURL = "https://kakakikikeke.com/podcast/feed"
 )
 
 type params struct {
@@ -26,47 +26,61 @@ type params struct {
 }
 
 func main() {
+	// 静的ファイル配信 (例: /static/style.css → static/style.css)
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	// favicon など root に配置したファイルも個別で対応
+	http.Handle("/favicon.ico", http.FileServer(http.Dir("static")))
+	http.Handle("/podcast_icon.png", http.FileServer(http.Dir("static")))
+	// サーバ起動
 	http.HandleFunc("/", handle)
-	appengine.Main()
+	log.Println("Listening on :8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	// コンテキスト作成、httpclient と logging などに使用
-	ctx := appengine.NewContext(r)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	// feed 取得
-	client := urlfetch.Client(ctx)
-	resp, _ := client.Get("https://kakakikikeke.com/podcast/feed")
+	resp, err := client.Get(feedURL)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		http.Error(w, "Failed to fetch feed", http.StatusInternalServerError)
+		return
+	}
 	defer resp.Body.Close()
-	body := ""
-	if resp.StatusCode == http.StatusOK {
-		bytes, _ := ioutil.ReadAll(resp.Body)
-		body = string(bytes)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Failed to read feed", http.StatusInternalServerError)
+		return
 	}
 	// feed パース
 	fp := gofeed.NewParser()
-	feed, _ := fp.ParseString(body)
-	items := feed.Items
+	feed, err := fp.ParseString(string(bodyBytes))
+	if err != nil || len(feed.Items) == 0 {
+		http.Error(w, "Failed to parse feed", http.StatusInternalServerError)
+		return
+	}
 	// feed からランダムに取得
-	rand.Seed(time.Now().Unix())
-	item := items[rand.Intn(len(items))]
-	// テンプレート用の変数を設定
-	params := params{}
-	// タイトル
-	params.Title = item.Title
-	// 公開日
-	params.Published = item.Published
-	// 正規表現を使って概要を取得、Submatch でカッコ内を取得
-	p1 := `<p>(.*)</p>`
-	r1 := regexp.MustCompile(p1)
-	ret1 := r1.FindStringSubmatch(item.Description)
-	params.About = ret1[1]
-	// 正規表現を使って show note の HTML を取得
-	p2 := `<ul id="menu">.*</ul>`
-	r2 := regexp.MustCompile(p2)
-	ret2 := r2.FindString(item.Description)
-	params.ShowNote = template.HTML(ret2)
-	// 音声 URL を取得
-	params.URL = item.Enclosures[0].URL
-	// HTML 出力
-	index.Execute(w, params)
+	rand.Seed(time.Now().UnixNano())
+	item := feed.Items[rand.Intn(len(feed.Items))]
+	p := params{
+		Title:     item.Title,
+		Published: item.Published,
+		URL:       item.Enclosures[0].URL,
+	}
+	// Descriptionの解析
+	desc := item.Description
+	r1 := regexp.MustCompile(`<p>(.*?)</p>`)
+	if m := r1.FindStringSubmatch(desc); len(m) > 1 {
+		p.About = m[1]
+	}
+	r2 := regexp.MustCompile(`<ul id="menu">.*?</ul>`)
+	if m := r2.FindString(desc); m != "" {
+		p.ShowNote = template.HTML(m)
+	}
+	if err := index.Execute(w, p); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+	}
 }

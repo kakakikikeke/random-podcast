@@ -4,8 +4,10 @@
 # Build on local
 * go mod tidy
 * go fmt ./...
+* go test ./...
 * go build
-* python /opt/homebrew/share/google-cloud-sdk/bin/dev_appserver.py .
+* ./random-podcast
+* curl localhost:8080
 
 # Deploy to GAE
 * gcloud config configurations activate default

@@ -1,0 +1,26 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+      - name: Lint
+        run: |
+          if [ "$(gofmt -l . | wc -l)" -ne 0 ]; then
+            echo "go fmt NG"
+            gofmt -l .
+            exit 1
+          else
+            echo "go fmt OK"
+          fi
