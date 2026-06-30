@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -36,6 +35,6 @@ func main() {
 	// Main handler
 	http.Handle("/", podcastHandler)
 
-	log.Println(fmt.Sprintf("Listening on %s...", cfg.Port))
+	log.Printf("Listening on %s...", cfg.Port)
 	log.Fatal(http.ListenAndServe(cfg.Port, nil))
 }
