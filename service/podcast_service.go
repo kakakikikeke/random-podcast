@@ -1,25 +1,36 @@
 package service
 
 import (
+	"fmt"
 	"html/template"
 	"math/rand"
 	"regexp"
 	"time"
 
 	"github.com/kakakikikeke/random-podcast/models"
-	"github.com/kakakikikeke/random-podcast/repository"
 	"github.com/mmcdole/gofeed"
 )
 
+// PodcastRepository defines the interface for podcast data access
+type PodcastRepository interface {
+	FetchFeed() ([]*gofeed.Item, error)
+}
+
 // PodcastService handles business logic for podcasts
 type PodcastService struct {
-	repo *repository.PodcastRepository
+	repo          PodcastRepository
+	rng           *rand.Rand
+	aboutRegex    *regexp.Regexp
+	showNoteRegex *regexp.Regexp
 }
 
 // NewPodcastService creates a new PodcastService instance
-func NewPodcastService(repo *repository.PodcastRepository) *PodcastService {
+func NewPodcastService(repo PodcastRepository) *PodcastService {
 	return &PodcastService{
-		repo: repo,
+		repo:          repo,
+		rng:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		aboutRegex:    regexp.MustCompile(`<p>(.*?)</p>`),
+		showNoteRegex: regexp.MustCompile(`<ul id="menu">.*?</ul>`),
 	}
 }
 
@@ -27,12 +38,15 @@ func NewPodcastService(repo *repository.PodcastRepository) *PodcastService {
 func (ps *PodcastService) GetRandomPodcast() (*models.Podcast, error) {
 	items, err := ps.repo.FetchFeed()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("service: %w", err)
+	}
+
+	if len(items) == 0 {
+		return nil, fmt.Errorf("no podcast items available")
 	}
 
 	// Select a random item
-	rand.Seed(time.Now().UnixNano())
-	item := items[rand.Intn(len(items))]
+	item := items[ps.rng.Intn(len(items))]
 
 	// Parse and return podcast
 	podcast := ps.parseItem(item)
@@ -60,8 +74,7 @@ func (ps *PodcastService) parseItem(item *gofeed.Item) *models.Podcast {
 
 // extractAbout extracts the "About" section from the description
 func (ps *PodcastService) extractAbout(desc string) string {
-	r := regexp.MustCompile(`<p>(.*?)</p>`)
-	if m := r.FindStringSubmatch(desc); len(m) > 1 {
+	if m := ps.aboutRegex.FindStringSubmatch(desc); len(m) > 1 {
 		return m[1]
 	}
 	return ""
@@ -69,8 +82,7 @@ func (ps *PodcastService) extractAbout(desc string) string {
 
 // extractShowNote extracts the show notes menu from the description
 func (ps *PodcastService) extractShowNote(desc string) template.HTML {
-	r := regexp.MustCompile(`<ul id="menu">.*?</ul>`)
-	if m := r.FindString(desc); m != "" {
+	if m := ps.showNoteRegex.FindString(desc); m != "" {
 		return template.HTML(m)
 	}
 	return ""

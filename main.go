@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -17,7 +18,10 @@ const (
 
 func main() {
 	// Initialize template
-	indexTmpl := template.Must(template.ParseFiles("index.html"))
+	indexTmpl, err := template.ParseFiles("index.html")
+	if err != nil {
+		log.Fatalf("failed to parse index.html: %v", err)
+	}
 
 	// Initialize layers
 	repo := repository.NewPodcastRepository(feedURL)
@@ -33,6 +37,6 @@ func main() {
 	// Main handler
 	http.Handle("/", podcastHandler)
 
-	log.Println("Listening on" + port + "...")
+	log.Println(fmt.Sprintf("Listening on %s...", port))
 	log.Fatal(http.ListenAndServe(port, nil))
 }

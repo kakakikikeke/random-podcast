@@ -10,11 +10,3 @@ type Podcast struct {
 	About     string
 	URL       string
 }
-
-// RawFeedItem represents raw feed item data for parsing
-type RawFeedItem struct {
-	Title       string
-	Published   string
-	Description string
-	AudioURL    string
-}

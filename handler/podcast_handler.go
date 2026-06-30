@@ -5,17 +5,22 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kakakikikeke/random-podcast/service"
+	"github.com/kakakikikeke/random-podcast/models"
 )
+
+// PodcastServicer defines the interface for podcast service
+type PodcastServicer interface {
+	GetRandomPodcast() (*models.Podcast, error)
+}
 
 // PodcastHandler handles HTTP requests for podcasts
 type PodcastHandler struct {
-	service   *service.PodcastService
+	service   PodcastServicer
 	indexTmpl *template.Template
 }
 
 // NewPodcastHandler creates a new PodcastHandler instance
-func NewPodcastHandler(svc *service.PodcastService, indexTemplate *template.Template) *PodcastHandler {
+func NewPodcastHandler(svc PodcastServicer, indexTemplate *template.Template) *PodcastHandler {
 	return &PodcastHandler{
 		service:   svc,
 		indexTmpl: indexTemplate,
@@ -26,13 +31,14 @@ func NewPodcastHandler(svc *service.PodcastService, indexTemplate *template.Temp
 func (ph *PodcastHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	podcast, err := ph.service.GetRandomPodcast()
 	if err != nil {
-		log.Printf("Error getting random podcast: %v", err)
+		log.Printf("error getting random podcast: %v", err)
 		http.Error(w, "Failed to fetch podcast", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := ph.indexTmpl.Execute(w, podcast); err != nil {
-		log.Printf("Template error: %v", err)
+		log.Printf("template rendering error: %v", err)
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
