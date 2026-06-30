@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -17,9 +18,21 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		FeedURL:           getEnv("PODCAST_FEED_URL", "https://kakakikikeke.com/podcast/feed"),
-		Port:              getEnv("PORT", ":8080"),
+		Port:              normalizePort(getEnv("PORT", ":8080")),
 		HTTPClientTimeout: getDurationEnv("HTTP_CLIENT_TIMEOUT", 10*time.Second),
 	}
+}
+
+func normalizePort(port string) string {
+	if port == "" {
+		return ":8080"
+	}
+
+	if strings.HasPrefix(port, ":") {
+		return port
+	}
+
+	return ":" + port
 }
 
 func getEnv(key, defaultValue string) string {

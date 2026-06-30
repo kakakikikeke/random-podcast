@@ -49,6 +49,28 @@ func TestNewConfig_FromEnvironment(t *testing.T) {
 	}
 }
 
+func TestNewConfig_FromEnvironmentGCPPort(t *testing.T) {
+	os.Setenv("PORT", "8081")
+	defer os.Unsetenv("PORT")
+
+	cfg := NewConfig()
+
+	if cfg.Port != ":8081" {
+		t.Errorf("Expected normalized Port ':8081', got %s", cfg.Port)
+	}
+}
+
+func TestNewConfig_EmptyPortFallback(t *testing.T) {
+	os.Setenv("PORT", "")
+	defer os.Unsetenv("PORT")
+
+	cfg := NewConfig()
+
+	if cfg.Port != ":8080" {
+		t.Errorf("Expected fallback Port ':8080', got %s", cfg.Port)
+	}
+}
+
 func TestNewConfig_DurationFromEnv(t *testing.T) {
 	tests := []struct {
 		name     string
