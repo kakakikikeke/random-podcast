@@ -1,3 +1,4 @@
+// Package handler provides HTTP request handling for the podcast application
 package handler
 
 import (

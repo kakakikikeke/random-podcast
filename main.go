@@ -6,17 +6,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/kakakikikeke/random-podcast/config"
 	"github.com/kakakikikeke/random-podcast/handler"
 	"github.com/kakakikikeke/random-podcast/repository"
 	"github.com/kakakikikeke/random-podcast/service"
 )
 
-const (
-	feedURL = "https://kakakikikeke.com/podcast/feed"
-	port    = ":8080"
-)
-
 func main() {
+	// Load configuration
+	cfg := config.NewConfig()
+
 	// Initialize template
 	indexTmpl, err := template.ParseFiles("index.html")
 	if err != nil {
@@ -24,7 +23,7 @@ func main() {
 	}
 
 	// Initialize layers
-	repo := repository.NewPodcastRepository(feedURL)
+	repo := repository.NewPodcastRepository(cfg.FeedURL)
 	svc := service.NewPodcastService(repo)
 	podcastHandler := handler.NewPodcastHandler(svc, indexTmpl)
 
@@ -37,6 +36,6 @@ func main() {
 	// Main handler
 	http.Handle("/", podcastHandler)
 
-	log.Println(fmt.Sprintf("Listening on %s...", port))
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Println(fmt.Sprintf("Listening on %s...", cfg.Port))
+	log.Fatal(http.ListenAndServe(cfg.Port, nil))
 }
