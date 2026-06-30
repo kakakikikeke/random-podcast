@@ -210,11 +210,13 @@ a:hover:not(.btn) {
     }
 
     #player {
-        position: relative;
-        width: auto;
+        position: fixed;
+        width: calc(100% - 32px);
         left: 0;
+        right: 0;
         bottom: 0;
         padding: 16px;
+        box-sizing: border-box;
     }
 
     #menu {
