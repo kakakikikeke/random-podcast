@@ -1,10 +1,15 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/kakakikikeke/random-podcast/handler"
+	"github.com/kakakikikeke/random-podcast/repository"
+	"github.com/kakakikikeke/random-podcast/service"
 )
 
 // テスト用のモックRSSフィード
@@ -26,25 +31,26 @@ const mockFeed = `<?xml version="1.0" encoding="UTF-8" ?>
   </channel>
 </rss>`
 
-func TestHandle(t *testing.T) {
+func TestPodcastHandler(t *testing.T) {
 	// モックフィードサーバーを起動
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(mockFeed))
 	}))
-	defer server.Close()
+	defer mockServer.Close()
 
-	// グローバル変数 feedURL をモックサーバーに差し替え
-	originalFeedURL := feedURL
-	feedURL = server.URL
-	defer func() { feedURL = originalFeedURL }()
+	// レイヤーを初期化
+	repo := repository.NewPodcastRepository(mockServer.URL)
+	svc := service.NewPodcastService(repo)
+	indexTmpl := template.Must(template.ParseFiles("index.html"))
+	podcastHandler := handler.NewPodcastHandler(svc, indexTmpl)
 
 	// リクエストを作成
 	req := httptest.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
 
 	// 実行
-	handle(rr, req)
+	podcastHandler.ServeHTTP(rr, req)
 
 	// 検証
 	if rr.Code != http.StatusOK {
