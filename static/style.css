@@ -1,4 +1,5 @@
 body {
+    margin: 0;
     animation: fadeIn 3s ease 0s 1 normal;
     -webkit-animation: fadeIn 3s ease 0s 1 normal;
 }
@@ -15,6 +16,7 @@ body {
 
 #show_note {
     width: 30%;
+    max-width: 420px;
 }
 
 #menu_toggle {
@@ -120,15 +122,15 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: 60%, 100%;
-    background-position: right top; 
+    background-position: right top;
     opacity: 0.2;
 }
 
 #reload {
     position: fixed;
     width: 50%;
-    top: 30;
-    right: 20;
+    top: 30px;
+    right: 20px;
 }
 
 .btn {
@@ -156,8 +158,8 @@ body {
 #player {
     position: fixed;
     width: 50%;
-    bottom: 30;
-    left: 10;
+    bottom: 30px;
+    left: 10px;
 }
 
 .base_font {
@@ -191,4 +193,39 @@ a:not(.btn) {
 
 a:hover:not(.btn) {
     color: tomato;
+}
+
+@media (max-width: 900px) {
+    #show_note {
+        width: 100%;
+        max-width: none;
+    }
+
+    #reload {
+        position: relative;
+        width: auto;
+        top: 0;
+        right: 0;
+        padding: 16px;
+    }
+
+    #player {
+        position: relative;
+        width: auto;
+        left: 0;
+        bottom: 0;
+        padding: 16px;
+    }
+
+    #menu {
+        width: calc(100vw - 40px);
+        padding: 96px 24px 32px;
+        margin: -80px 0 0 -24px;
+        box-sizing: border-box;
+    }
+
+    #bg_img {
+        background-size: 95%;
+        background-position: center top;
+    }
 }

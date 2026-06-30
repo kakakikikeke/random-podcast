@@ -1,5 +1,8 @@
-<html>
+<!DOCTYPE html>
+<html lang="ja">
   <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-59562088-9"></script>
     <script>
@@ -21,14 +24,14 @@
   </head>
   <body>
     <div id="show_note">
-      <nav role="navigation">
-	<div id="menu_toggle">
-	  <input type="checkbox" />
+      <nav role="navigation" aria-label="Show notes menu">
+        <div id="menu_toggle">
+          <input type="checkbox" aria-label="Show notes menu toggle" />
           <span></span>
-	  <span></span>
-	  <span></span>
+          <span></span>
+          <span></span>
           {{ .ShowNote }}
-	</div>
+        </div>
       </nav>
     </div>
     <div id="bg_color"></div>
@@ -38,7 +41,7 @@
       <div class="right_side"><a href="https://kakakikikeke.com/podcast">エピソード一覧</a></div>
     </div>
     <div id="player">
-      <div id="ep_title" class="_base_font">{{ .Title }}</div>
+      <div id="ep_title" class="base_font">{{ .Title }}</div>
       <div id="date" class="base_font">Rec date: {{ .Published }}</div>
       <div id="about" class="base_font">{{ .About }}</div>
       <audio id="audio1" src="{{ .URL }}" preload controls>Your browser does not support HTML5 Audio!</audio>
