@@ -36,5 +36,7 @@ func main() {
 	http.Handle("/", podcastHandler)
 
 	log.Printf("Listening on %s...", cfg.Port)
+	// App Engine terminates TLS at the platform edge.
+	// nosemgrep: go.lang.security.audit.net.use-tls.use-tls
 	log.Fatal(http.ListenAndServe(cfg.Port, nil))
 }

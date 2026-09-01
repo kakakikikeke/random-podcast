@@ -11,7 +11,7 @@ type Podcast struct {
 	// Published is the publication date
 	Published string
 
-	// ShowNote contains structured show notes as HTML
+	// ShowNote contains structured show notes as HTML.
 	ShowNote template.HTML
 
 	// About is a brief description of the episode

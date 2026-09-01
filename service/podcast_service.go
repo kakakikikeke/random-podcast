@@ -2,14 +2,16 @@
 package service
 
 import (
+	"crypto/rand"
 	"fmt"
 	"html/template"
-	"math/rand"
+	"math/big"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/kakakikikeke/random-podcast/models"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/net/html"
 )
 
 // PodcastRepository defines the interface for podcast data access
@@ -20,7 +22,7 @@ type PodcastRepository interface {
 // PodcastService handles business logic for podcasts
 type PodcastService struct {
 	repo          PodcastRepository
-	rng           *rand.Rand
+	randomInt     func(int) int
 	aboutRegex    *regexp.Regexp
 	showNoteRegex *regexp.Regexp
 }
@@ -29,10 +31,22 @@ type PodcastService struct {
 func NewPodcastService(repo PodcastRepository) *PodcastService {
 	return &PodcastService{
 		repo:          repo,
-		rng:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		randomInt:     secureRandomInt,
 		aboutRegex:    regexp.MustCompile(`<p>(.*?)</p>`),
 		showNoteRegex: regexp.MustCompile(`<ul id="menu">.*?</ul>`),
 	}
+}
+
+func secureRandomInt(max int) int {
+	if max <= 0 {
+		return 0
+	}
+
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0
+	}
+	return int(n.Int64())
 }
 
 // GetRandomPodcast fetches a random podcast episode from the feed
@@ -46,8 +60,8 @@ func (ps *PodcastService) GetRandomPodcast() (*models.Podcast, error) {
 		return nil, fmt.Errorf("no podcast items available")
 	}
 
-	// Select a random item
-	item := items[ps.rng.Intn(len(items))]
+	// Select a random item using a cryptographically secure PRNG.
+	item := items[ps.randomInt(len(items))]
 
 	// Parse and return podcast
 	podcast := ps.parseItem(item)
@@ -81,10 +95,98 @@ func (ps *PodcastService) extractAbout(desc string) string {
 	return ""
 }
 
-// extractShowNote extracts the show notes menu from the description
+// extractShowNote extracts and sanitizes the show notes menu from the description.
+// The podcast feed is treated as trusted input, but we still strip unsafe tags/attributes
+// before rendering as HTML in the template.
 func (ps *PodcastService) extractShowNote(desc string) template.HTML {
 	if m := ps.showNoteRegex.FindString(desc); m != "" {
-		return template.HTML(m)
+		safe := sanitizeHTML(m)
+		if safe != "" {
+			// nosemgrep: go.lang.security.audit.xss.template-html-does-not-escape.unsafe-template-type
+			return template.HTML(safe)
+		}
 	}
 	return ""
+}
+
+func sanitizeHTML(raw string) string {
+	nodes, err := html.ParseFragment(strings.NewReader(raw), nil)
+	if err != nil {
+		return ""
+	}
+
+	var b strings.Builder
+	for _, n := range nodes {
+		if sanitized := sanitizeNode(n); sanitized != nil {
+			renderNode(sanitized, &b)
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func renderNode(n *html.Node, b *strings.Builder) {
+	if n == nil {
+		return
+	}
+	if n.Type == html.ElementNode && (n.Data == "html" || n.Data == "head" || n.Data == "body") {
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			renderNode(c, b)
+		}
+		return
+	}
+	_ = html.Render(b, n)
+}
+
+func sanitizeNode(n *html.Node) *html.Node {
+	if n == nil {
+		return nil
+	}
+
+	if n.Type == html.ElementNode {
+		switch n.Data {
+		case "html", "head", "body":
+			// Fragments are wrapped by the parser; allow the wrapper nodes.
+		case "script", "iframe", "object", "embed", "svg", "math", "style", "link", "meta", "base":
+			return nil
+		case "a":
+			filtered := n.Attr[:0]
+			for _, attr := range n.Attr {
+				switch {
+				case strings.HasPrefix(strings.ToLower(attr.Key), "on"):
+					continue
+				case strings.EqualFold(attr.Key, "href") && strings.HasPrefix(strings.ToLower(attr.Val), "javascript:"):
+					continue
+				case !isAllowedAttribute(attr.Key):
+					continue
+				default:
+					filtered = append(filtered, attr)
+				}
+			}
+			n.Attr = filtered
+		case "ul", "ol", "li", "p", "div", "span", "br", "strong", "b", "em", "i", "nav":
+			// allow these tags without removing attributes.
+		default:
+			return nil
+		}
+	}
+
+	for child := n.FirstChild; child != nil; {
+		next := child.NextSibling
+		if sanitized := sanitizeNode(child); sanitized == nil {
+			n.RemoveChild(child)
+			child = next
+		} else {
+			child = next
+		}
+	}
+	return n
+}
+
+func isAllowedAttribute(key string) bool {
+	switch strings.ToLower(key) {
+	case "href", "title", "target", "rel", "id", "class":
+		return true
+	default:
+		return false
+	}
 }

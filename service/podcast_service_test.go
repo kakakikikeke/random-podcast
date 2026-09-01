@@ -43,8 +43,8 @@ func TestNewPodcastService(t *testing.T) {
 	if svc.repo != repo {
 		t.Error("Expected repo to be assigned")
 	}
-	if svc.rng == nil {
-		t.Error("Expected rng to be initialized")
+	if svc.randomInt == nil {
+		t.Error("Expected randomInt to be initialized")
 	}
 	if svc.aboutRegex == nil {
 		t.Error("Expected aboutRegex to be initialized")
@@ -169,6 +169,11 @@ func TestExtractShowNote(t *testing.T) {
 			name:     "No menu",
 			input:    "<p>Just paragraph</p>",
 			expected: "",
+		},
+		{
+			name:     "Menu with script tag",
+			input:    "<script>alert('x')</script><ul id=\"menu\"><li>Note 1</li></ul>",
+			expected: "<ul id=\"menu\"><li>Note 1</li></ul>",
 		},
 		{
 			name:     "Empty menu",
