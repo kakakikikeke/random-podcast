@@ -19,4 +19,5 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
+          exit-code: 1
           scanners: vuln,secret,misconfig
